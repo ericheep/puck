@@ -3,7 +3,7 @@
 
 // ID number of the arduino, cooresponds
 // to an individual Puck
-#define arduinoID 1
+#define arduinoID 0
 
 // LED stuff
 #define NUM_LEDS 16
@@ -111,7 +111,7 @@ RGB HSVtoRGB(HSV hsv) {
 void setup() {
   // start serial port at 9600 bps and wait for port to open
   // might change to a higher baudrate later on
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   for (int i = 0; i < NUM_LEDS; i++) {
     for (int j = 0; j < 3; j++) {
@@ -147,7 +147,7 @@ void loop() {
       }
       else {
         HSV hsv = {
-          hue/1024.0 * 360.0, sat/255.0, val/255.0
+          hue/1024.0 * 360.0, sat/255.0, pow(val/255.0, 7)
         };
         setColor(led, hsv);
         Tlc.update();
