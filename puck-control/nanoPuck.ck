@@ -6,18 +6,18 @@ HandshakeID talk;
 talk.talk.init();
 2.5::second => now;
 
-Puck p;
-p.setPort(0);
+Puck p[2];
+
+for (0 => int i; i < 2; i++) {
+    p[i].init(i);
+}
 
 int inc;
-
-p.IDCheck(0) => int check;
-<<< check >>>;
-
 while (true) {
     inc + 5 => inc;;
     for (0 => int i; i < 16; i++) {
-        p.send(i, 512, 122, 40);
+        p[0].send(i, inc, 255, 255);
+        p[1].send(i, inc, 255, 255);
         10::ms => now;
     }
 }

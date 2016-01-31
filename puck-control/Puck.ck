@@ -4,20 +4,18 @@
 public class Puck{
     HandshakeID talk;
     int port;
-    16 => int numLEDs;
 
-    fun void setPort(int p) {
-        p => port;
+    fun void init(int which) {
+        IDCheck(which) => port;
     }
 
     // tells child class to only send serial messages
     // if it has successfully connected to a matching robot
     fun int IDCheck(int arduinoID) {
-       -1 => int check;
+        -1 => int check;
         for (int i; i < talk.talk.robotID.cap(); i++) {
-            <<< talk.talk.robotID[i] >>>;
             if (arduinoID == talk.talk.robotID[i]) {
-                <<< "connected!", i >>>;
+                <<< "Puck", talk.talk.robotID[i], "connected to port", i + "." >>>;
                 i => check;
             }
         }
