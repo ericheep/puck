@@ -34,18 +34,15 @@ public class Handshake {
                 num++;
             }
         }
-        <<< "Found", num, "available USB ports:", "" >>>;
+        <<< "Found", num, "available USB ports.", "" >>>;
         return num;
     }
 
     // opens only how many serial ports there are usb ports connected
     fun void openPorts() {
         for (int i; i < serial.cap(); i++) {
-            if (!serial[i].open(serial_port[i], SerialIO.B9600, SerialIO.BINARY)) {
+            if (!serial[i].open(serial_port[i], SerialIO.B57600, SerialIO.BINARY)) {
                 <<< "Unable to open serial device:", "\t", list[serial_port[i]] >>>;
-            }
-            else {
-                <<< list[serial_port[i]], "assigned to port", serial_port[i], "" >>>;
             }
         }
         <<< "-", "" >>>;
