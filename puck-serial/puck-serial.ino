@@ -3,7 +3,7 @@
 
 // ID number of the arduino, cooresponds
 // to an individual Puck
-#define arduinoID 0
+#define arduinoID 1
 
 // LED stuff
 #define NUM_LEDS 16
@@ -15,6 +15,7 @@ int handshake;
 
 int LEDS[NUM_LEDS][NUM_TLCS];
 float hues[NUM_LEDS];
+float sats[NUM_LEDS];
 float vals[NUM_LEDS];
 
 void setColor(int ledNum, LedRGB lrgb) {
@@ -111,45 +112,46 @@ void setup() {
   // start serial port at 9600 bps and wait for port to open
   // might change to a higher baudrate later on
   Serial.begin(9600);
+
   for (int i = 0; i < NUM_LEDS; i++) {
     for (int j = 0; j < 3; j++) {
       LEDS[i][j] = i * 3 + j;
     }
+    hues[i] = 0.0;
+    sats[i] = 0.0;
+    vals[i] = 0.0;
   }
   Tlc.init();
 }
 
-void loop()
-{
+void loop() {
   if (Serial.available()) {
-    // reads in a two index array from ChucK
-    Serial.readBytes(bytes, 2);
+    if (Serial.read() == 0xff) {
+      // reads in a two index array from ChucK
+      Serial.readBytes(bytes, 4);
 
-    // bit wise operations
-    // ~~~~~~~~~~~~~~~~~~~
-    // reads the first six bits for the note number
-    // then reads the last ten bits for the note velocity
-    int led = byte(bytes[0]) >> 2;
-    int data = (byte(bytes[0]) << 8 | byte(bytes[1])) & 1023;
+      // bit wise operations
+      // ~~~~~~~~~~~~~~~~~~~
+      // reads the first six bits for the note number
+      // then reads the last ten bits for the note velocity
+      int led = byte(bytes[0]) >> 2;
+      int hue = (byte(bytes[0]) << 8 | byte(bytes[1])) & 1023;
+      int sat = byte(bytes[2]);
+      int val = byte(bytes[3]);
 
-    // message required for "handshake" to occur
-    // happens once per Arduino at the start of the ChucK serial code
-    if (led == 63 && data == 1023 && handshake == 0) {
-      Serial.write(arduinoID);
-      handshake = 1;
-    }
-    else {
-      if (led < 16) {
-        hues[led] = data;
+      // message required for "handshake" to occur
+      // happens once per Arduino at the start of the ChucK serial code
+      if (led == 63 && hue == 1023 && handshake == 0) {
+        Serial.write(arduinoID);
+        handshake = 1;
       }
-      if (led > 15 && led < 32) {
-        vals[led] = data;
+      else {
+        HSV hsv = {
+          hue/1024.0 * 360.0, sat/255.0, val/255.0
+        };
+        setColor(led, hsv);
+        Tlc.update();
       }
-      HSV hsv = {
-        hues[led], 1, vals[led]
-      };
-      setColor(led, hsv);
-      Tlc.update();
     }
   }
 }
