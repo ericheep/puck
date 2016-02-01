@@ -34,13 +34,21 @@ int randomHue[2][16];
 
 int _shiftingHue[2][16];
 int shiftingHue[2][16];
-int shiftingBase[2];
+int shiftingAdd[2];
 int shiftingRange[2];
 float shiftingInc[2];
+float shiftingSine[2];
 
-int hue[2][16];
-int sat[2][16];
-int val[2][16];
+int _shadowVal[2][16];
+int shadowVal[2][16];
+int shadowAdd[2];
+int shadowRange[2];
+float shadowInc[2];
+float shadowSine[2];
+
+float hue[2][16];
+float sat[2][16];
+float val[2][16];
 
 // iniitialize values
 for (0 => int i; i < 2; i++) {
@@ -61,15 +69,28 @@ fun void staticColors() {
     }
 }
 
+// shadow spectrum
+fun void shadowColors() {
+    for (0 => int i; i < 2; i++) {
+        n.knob[1 + i * 4] => shadowAdd[i];
+        n.slider[1 + i * 4] => shadowRange[i];
+        (shadowAdd[i]/127.0 * 0.1) % pi +=> shadowInc[i];
+        ((Math.sin(shadowInc[i]) + 1.0) * 0.5) * shadowRange[i]/127.0 => shadowSine[i];
+
+        for (0 => int j; j < 16; j++) {
+            (shadowRange[i] * j/8.0) $ int => _shadowVal[i][j];
+        }
+    }
+}
+
+
 // shifting spectrum
 fun void shiftingColors() {
     for (0 => int i; i < 2; i++) {
+        n.knob[2 + i * 4] => shiftingAdd[i];
         n.slider[2 + i * 4] => shiftingRange[i];
-        n.knob[2 + i * 4] => shiftingBase[i];
-        if (shiftingInc[i] != 0) {
-            (shiftingBase[i]/127.0 * 4.0 + shiftingInc[i])
-            % shiftingRange[i] => shiftingInc[i];
-        }
+        (shiftingAdd[i]/127.0 * 0.5) % pi +=> shiftingInc[i];
+        ((Math.sin(shiftingInc[i]) + 1.0) * 0.5) * shiftingRange[i] => shiftingSine[i];
 
         for (0 => int j; j < 16; j++) {
             (shiftingRange[i] * j/16.0) $ int => _shiftingHue[i][j];
@@ -121,6 +142,12 @@ fun void smoothColors() {
             else if (shiftingHue[i][j] > _shiftingHue[i][j]) {
                 shiftingHue[i][j]--;
             }
+            if (shadowVal[i][j] < _shadowVal[i][j]) {
+                shadowVal[i][j]++;
+            }
+            else if (shadowVal[i][j] > _shadowVal[i][j]) {
+                shadowVal[i][j]--;
+            }
         }
     }
 }
@@ -132,26 +159,26 @@ fun int convert(float input, float scale) {
 fun void updateColors() {
     for (0 => int i; i < 2; i++) {
         for (0 => int j; j < 16; j++) {
-            (baseHue[i][j] + randomHue[i][j] + shiftingHue[i][j]) % 127 => hue[i][j];
-            baseVal[i][j] => val[i][j];
+            (baseHue[i][j] + randomHue[i][j] + shiftingHue[i][j]) % 127 + shiftingSine[i] => hue[i][j];
+            (baseVal[i][j] - shadowVal[i][j]) * (1.0 - shadowSine[i]) => val[i][j];
         }
     }
 
-    // for (0 => int i; i < 2; i++) {
-    for (0 => int j; j < 16; j++) {
-        p[0].send(j, convert(hue[0][j] + shiftingInc[0], lowHue + highHue),
-                     convert(sat[0][j], 255),
-                     convert(val[0][j], 255));
+    for (0 => int i; i < 2; i++) {
+        for (0 => int j; j < 16; j++) {
+            p[i].send(j, convert(hue[i][j], lowHue + highHue),
+                         convert(sat[i][j], 255),
+                         convert(val[i][j], 255));
+        }
     }
-    // }
 }
 
 while (true) {
     staticColors();
+    shadowColors();
     shiftingColors();
     randomColors();
     smoothColors();
     updateColors();
-    <<< shiftingInc[0] >>>;
     (1.0/60.0)::second => now;
 }

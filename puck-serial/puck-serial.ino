@@ -3,7 +3,7 @@
 
 // ID number of the arduino, cooresponds
 // to an individual Puck
-#define arduinoID 0
+#define arduinoID 1
 
 // LED stuff
 #define NUM_LEDS 16
