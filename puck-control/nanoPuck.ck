@@ -73,12 +73,12 @@ fun void staticColors() {
 fun void shadowColors() {
     for (0 => int i; i < 2; i++) {
         n.knob[1 + i * 4] => shadowAdd[i];
-        n.slider[1 + i * 4] => shadowRange[i];
-        (shadowAdd[i]/127.0 * 0.1) % pi +=> shadowInc[i];
-        ((Math.sin(shadowInc[i]) + 1.0) * 0.5) * shadowRange[i]/127.0 => shadowSine[i];
+        //(shadowAdd[i]/127.0 * 0.1) % pi +=> shadowInc[i];
+        //((Math.sin(shadowInc[i]) + 1.0) * 0.5) * shadowRange[i]/127.0 => shadowSine[i];
 
         for (0 => int j; j < 16; j++) {
-            (shadowRange[i] * j/8.0) $ int => _shadowVal[i][j];
+            n.slider[1 + i * 4] * 1.0 => sat[i][j];
+            //(shadowRange[i] * j/8.0) $ int => _shadowVal[i][j];
         }
     }
 }
@@ -180,5 +180,5 @@ while (true) {
     randomColors();
     smoothColors();
     updateColors();
-    (1.0/60.0)::second => now;
+    (1.0/30.0)::second => now;
 }
