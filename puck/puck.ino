@@ -1,11 +1,13 @@
 #include "Tlc5940.h"
 #include "colors.h"
 
-#define NUM_SUB_LEDS 16
 #define NUM_LEDS 16
 #define NUM_TLCS 3
 
-int LEDS[NUM_SUB_LEDS][NUM_TLCS];
+int inc;
+
+// three per led
+int LEDS[NUM_LEDS][3];
 
 void setColor(int ledNum, LedRGB lrgb) {
   ledNum = ledNum % NUM_LEDS;
@@ -107,7 +109,7 @@ void setup() {
 }
 
 // loop code
-float inc;
+// float inc;
 
 // returns a random HSV
 HSV randomHSV() {
@@ -226,7 +228,7 @@ void oneOffColor(int hue, float s, float v) {
     setColor(i, hsv);
   }
   HSV hsv = {
-   0, s, v
+    0, s, v
   };
   setColor(random(0, 16), hsv);
 
@@ -236,19 +238,19 @@ void oneOffColor(int hue, float s, float v) {
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
-   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
-   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
-   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
-   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
-   setColor(random(0, 16), bsv);
+  setColor(random(0, 16), bsv);
+  setColor(random(0, 16), bsv);
+  setColor(random(0, 16), bsv);
+  setColor(random(0, 16), bsv);
+  setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
   setColor(random(0, 16), bsv);
 
@@ -365,13 +367,24 @@ void fadingRows(int hue, float milliseconds) {
   }
 }
 
+
 void loop() {
   // walkDrop();
   // cyclingGradients();
   // gradientShifts(0.2, 30);
   // oneColor(70, 1.0, 1.0);
-  oneOffColor(30, 1.0, 1.0);
-  delay(89);
+
+  inc = (inc + 1) % 360;
+  
+  for (int i = 0; i < 8; i++) {
+    HSV hsv = {
+      inc, 0, 1
+    };
+    setColor(i, hsv);
+    Tlc.update();
+  }
+  
+  delay(10);
   // fadeInOut(i, 30, 200);
   // fadingRows(30, 5000);
 }

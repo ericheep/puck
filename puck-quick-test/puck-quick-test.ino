@@ -1,23 +1,12 @@
 #include "Tlc5940.h"
 #include "colors.h"
 
-// ID number of the arduino, cooresponds
-// to an individual Puck
-#define arduinoID 0
+#define NUM_SUB_LEDS 16
+#define NUM_LEDS 8
+#define NUM_TLCS 2
 
-// LED stuff
-#define NUM_LEDS 16
-#define NUM_TLCS 3
-
-// stores our incoming values
-char bytes[2];
-int handshake;
-
-// three per LED
+int inc;
 int LEDS[NUM_LEDS][3];
-float hues[NUM_LEDS];
-float sats[NUM_LEDS];
-float vals[NUM_LEDS];
 
 void setColor(int ledNum, LedRGB lrgb) {
   ledNum = ledNum % NUM_LEDS;
@@ -110,49 +99,44 @@ RGB HSVtoRGB(HSV hsv) {
 }
 
 void setup() {
-  // start serial port at 9600 bps and wait for port to open
-  // might change to a higher baudrate later on
-  Serial.begin(57600);
-
   for (int i = 0; i < NUM_LEDS; i++) {
     for (int j = 0; j < 3; j++) {
       LEDS[i][j] = i * 3 + j;
     }
-    hues[i] = 0.0;
-    sats[i] = 0.0;
-    vals[i] = 0.0;
   }
   Tlc.init();
 }
 
-void loop() {
-  if (Serial.available()) {
-    if (Serial.read() == 0xff) {
-      // reads in a two index array from ChucK
-      Serial.readBytes(bytes, 4);
+// loop code
+// float inc;
 
-      // bit wise operations
-      // ~~~~~~~~~~~~~~~~~~~
-      // reads the first six bits for the note number
-      // then reads the last ten bits for the note velocity
-      int led = byte(bytes[0]) >> 2;
-      int hue = (byte(bytes[0]) << 8 | byte(bytes[1])) & 1023;
-      int sat = byte(bytes[2]);
-      int val = byte(bytes[3]);
-
-      // message required for "handshake" to occur
-      // happens once per Arduino at the start of the ChucK serial code
-      if (led == 63 && hue == 1023 && handshake == 0) {
-        Serial.write(arduinoID);
-        handshake = 1;
-      }
-      else {
-        HSV hsv = {
-          hue/1024.0 * 360.0, sat/255.0, pow(val/255.0, 7)
-        };
-        setColor(led, hsv);
-        Tlc.update();
-      }
-    }
-  }
+// returns a random HSV
+HSV randomHSV() {
+  return  randomHSV(0, 360, .4, 1, .4, 1);
 }
+
+
+HSV randomHSV(int minH, int maxH, float minS, float maxS, float minV, float maxV) {
+  int h = random(minH, maxH);
+  float s = (random(int(minS * 1000), int(maxS * 1000)) / 1000.0);
+  float v = (random(int(minV * 1000), int(maxV * 1000)) / 1000.0);
+  return (HSV) {
+    h, s, v
+  };
+}
+
+void loop() {
+  inc = (inc + 1) % 360;
+  
+  for (int i = 0; i < NUM_LEDS; i++) {
+    HSV hsv = {
+      inc, 1, 1
+    };
+    
+    setColor(i, hsv);
+    Tlc.update();
+  }
+  
+  delay(10);
+}
+
