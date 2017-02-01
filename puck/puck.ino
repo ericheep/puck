@@ -1,10 +1,12 @@
 #include "Tlc5940.h"
 #include "colors.h"
+#include "math.h" 
 
 #define NUM_LEDS 16
 #define NUM_TLCS 3
 
-int inc;
+float inc;
+float sinInc, brightInc, sinBright;
 
 // three per led
 int LEDS[NUM_LEDS][3];
@@ -105,6 +107,7 @@ void setup() {
       LEDS[i][j] = i * 3 + j;
     }
   }
+  Serial.begin(9600);
   Tlc.init();
 }
 
@@ -374,16 +377,21 @@ void loop() {
   // gradientShifts(0.2, 30);
   // oneColor(70, 1.0, 1.0);
 
-  inc = (inc + 1) % 360;
+  inc = fmod((inc + 0.02), PI);
+  sinInc = sin(inc) * 15;
+
+  brightInc = fmod((brightInc + 0.005), PI);
+  sinBright = (sin(brightInc)) * 1;
   
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 16; i++) {
     HSV hsv = {
-      inc, 0, 1
+      30, 1, sinBright * sinBright * sinBright
     };
     setColor(i, hsv);
     Tlc.update();
   }
-  
+
+  Serial.println(sinBright);
   delay(10);
   // fadeInOut(i, 30, 200);
   // fadingRows(30, 5000);

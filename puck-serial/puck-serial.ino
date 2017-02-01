@@ -3,7 +3,7 @@
 
 // ID number of the arduino, cooresponds
 // to an individual Puck
-#define arduinoID 0
+#define arduinoID 5
 
 // LED stuff
 #define NUM_LEDS 16
@@ -132,9 +132,6 @@ void loop() {
       Serial.readBytes(bytes, 4);
 
       // bit wise operations
-      // ~~~~~~~~~~~~~~~~~~~
-      // reads the first six bits for the note number
-      // then reads the last ten bits for the note velocity
       int led = byte(bytes[0]) >> 2;
       int hue = (byte(bytes[0]) << 8 | byte(bytes[1])) & 1023;
       int sat = byte(bytes[2]);
